@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MFIP-1119": {
+      "commandName": "Project",
+      "commandLineArgs": "4 G:\\minef\\Downloads\\lyncentry.exe"
+    }
+  }
+}
