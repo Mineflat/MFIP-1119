@@ -1,12 +1,16 @@
 ﻿using Spectre.Console;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using MimeDetective;
 using Spectre.Console.Json;
 using TwentyDevs.MimeTypeDetective;
 using MimeSharp;
 using System.IO;
 using HeyRed.Mime;
+using MimeDetective;
+using MimeDetective.Definitions;
+using MimeDetective.Engine;
+using MimeDetective.MemoryMapping;
+
 
 namespace MFIP_1119
 {
@@ -43,7 +47,7 @@ namespace MFIP_1119
                 // Проверка существования файла
                 if (!File.Exists(args[1]))
                 {
-                    OnPanic($"Указанный файл не существует или не хватает прав для его чтения: {args[2]}");
+                    OnPanic($"Указанный файл не существует или не хватает прав для его чтения: {args[1]}");
                 }
                 // Выбор библиотеки
                 switch (libID)
@@ -196,19 +200,39 @@ namespace MFIP_1119
         /// <param name="fullPath"></param>
         private static void ContentInspectorEnumeration(string fullPath)
         {
-            for (ushort i = 1; i <= 3; i++)
+            if (File.ReadAllBytes(fullPath).Length == 0) OnPanic("The provided file is empty, so can't be inspected by this method");
+            var inspector = new ContentInspectorBuilder { Definitions = DefaultDefinitions.All() }.Build();
+            var result = inspector.InspectMemoryMapped(fullPath);
+            foreach (var match in result.OrderByDescending(static m => m.Points))
             {
-                var inspector = GetContentInspectorBuilder(i);
-                var result = inspector.Inspect(fullPath);
-                var jsonFormatted = new JsonText(Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented));
-                // Using Spectre.Console.Json lib to render
-                AnsiConsole.Write(
-                    new Panel(jsonFormatted)
-                        .Header($"File {fullPath} (JSON-formatted, inspector type {i})")
-                        .Collapse()
-                        .RoundedBorder()
-                        .BorderColor(Color.Yellow));
+                if (match.Type != DefinitionMatchType.Complete)
+                {
+                    continue;
+                }
+
+                var fileType = match.Definition.File;
+                if (string.IsNullOrEmpty(fileType.MimeType))
+                {
+                    continue;
+                }
+
+                Console.WriteLine($"  {fileType.MimeType} ({string.Join(", ", fileType.Extensions)})");
             }
+
+            //for (ushort i = 1; i <= 3; i++)
+            //{
+            //var inspector = GetContentInspectorBuilder(i);
+            //var result = inspector.Inspect(File.ReadAllBytes(fullPath));
+
+            //var jsonFormatted = new JsonText(Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented));
+            // Using Spectre.Console.Json lib to render
+            //AnsiConsole.Write(
+            //    new Panel(jsonFormatted)
+            //        .Header($"File {fullPath} (JSON-formatted, inspector type {i})")
+            //        .Collapse()
+            //        .RoundedBorder()
+            //        .BorderColor(Color.Yellow));            
+            //}
         }
 
         // DotNet-native methods (by urlmon.dll)

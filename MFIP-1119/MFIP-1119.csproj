@@ -13,6 +13,7 @@
     <PackageReference Include="Mime-Detective" Version="25.4.25" />
     <PackageReference Include="Mime-Detective.Definitions.Condensed" Version="25.4.25" />
     <PackageReference Include="Mime-Detective.Definitions.Exhaustive" Version="25.4.25" />
+    <PackageReference Include="MimeDetective.MemoryMapping" Version="25.4.25" />
     <PackageReference Include="MimeSharp" Version="1.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Spectre.Console" Version="0.50.0" />

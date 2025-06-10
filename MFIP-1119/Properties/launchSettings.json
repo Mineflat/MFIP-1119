@@ -2,7 +2,7 @@
   "profiles": {
     "MFIP-1119": {
       "commandName": "Project",
-      "commandLineArgs": "6 G:\\CODE\\MFIP-1119\\MFIP-1119\\bin\\Release\\net8.0\\publish\\linux-x64\\1.txt"
+      "commandLineArgs": "1 G:\\ITD\\MFIMP-1104\\mflash_app-513.tar.gz"
     }
   }
 }
