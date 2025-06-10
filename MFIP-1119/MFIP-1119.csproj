@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Mime" Version="3.7.0" />
     <PackageReference Include="Mime-Detective" Version="25.4.25" />
     <PackageReference Include="Mime-Detective.Definitions.Condensed" Version="25.4.25" />
     <PackageReference Include="Mime-Detective.Definitions.Exhaustive" Version="25.4.25" />

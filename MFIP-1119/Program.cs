@@ -6,6 +6,7 @@ using Spectre.Console.Json;
 using TwentyDevs.MimeTypeDetective;
 using MimeSharp;
 using System.IO;
+using HeyRed.Mime;
 
 namespace MFIP_1119
 {
@@ -19,7 +20,8 @@ namespace MFIP_1119
             Console.WriteLine("\t [2] - TwentyDevs.MimeTypeDetective");
             Console.WriteLine("\t [3] - MimeSharp");
             Console.WriteLine("\t [4] - TikaOnDotNet");
-            Console.WriteLine("\t [5] - DotNet-native methods (by urlmon.dll) - WILL NOT WORK FOR NOW");
+            Console.WriteLine("\t [5] - DotNet-native methods (by urlmon.dll) - WILL NOT WORK FOR NOW" +
+                "\t[6] - HeyRed.Mime");
             Console.WriteLine("Example usage:\n\t./{AppDomain.CurrentDomain.FriendlyName} 1 ./file.txt");
         }
 
@@ -70,6 +72,17 @@ namespace MFIP_1119
                         // This is often an indication that other memory is corrupt.
                         OnPanic("Этот метод пока не работает");
                         RenderNativePannel($"File mime type: {getMimeFromFile(args[1])}");
+                        break;
+                    // HeyRed.Mime
+                    case 6:
+                        string info = "MimeType: 1\nExtention: 2";
+                        //MimeGuesser.MagicFilePath = args[1];
+                        info = info.Replace("1", MimeGuesser.GuessMimeType(args[1])); //=> image/jpeg
+                        // Get extension of file(overloaded method takes byte array or stream as arg.)
+                        info = info.Replace("2", MimeGuesser.GuessExtension(args[1])); //=> jpeg
+                        // Get mime type and extension of file(overloaded method takes byte array or stream as arg.)
+                        RenderNativePannel(info);
+                        // src: https://github.com/hey-red/Mime
                         break;
                     // DEFAULT
                     default:
