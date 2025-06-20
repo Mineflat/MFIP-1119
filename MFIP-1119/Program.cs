@@ -21,7 +21,7 @@ namespace MFIP_1119
     {
         private static void ShowHelpMessage()
         {
-            Console.WriteLine($"To use this app run:\n\t./{AppDomain.CurrentDomain.FriendlyName} [libID] [path_to_file]");
+            Console.WriteLine($"To use this app run:\n\t./{AppDomain.CurrentDomain.FriendlyName} [libID] [path_to_file] [path_to_magicfile] (last option only in case 5)");
             Console.WriteLine("List fo LibID:");
             Console.WriteLine("\t [1] - Mime-Detective");
             Console.WriteLine("\t [2] - TwentyDevs.MimeTypeDetective");
@@ -40,7 +40,7 @@ namespace MFIP_1119
         }
         static void Main(string[] args)
         {
-            if (args.Length != 2)
+            if (args.Length != 2 || args.Length != 3)
             {
                 OnPanic($"Передано неверное число аргументов: {args.Length}");
             }
@@ -245,9 +245,9 @@ namespace MFIP_1119
         {
             string magicFile = string.Empty;
             string targetFile = string.Empty;
-            if (!File.Exists(args[0])) { OnPanic($"Файл не существует: {args[0]}"); }
+            if (!File.Exists(args[1])) { OnPanic($"Файл не существует: {args[1]}"); }
             else { targetFile = args[1]; }
-            if (!File.Exists(args[1]))
+            if (!File.Exists(args[2]))
             {
                 OnPanic("Для использования этого метода требуетися наличие файла ./file.magic следующего формата (пример):\n" +
                     "# offset  type    pattern             description\n" +
@@ -259,7 +259,7 @@ namespace MFIP_1119
                     "0          hex     504B0304             ZIP archive data\n" +
                     $"{String.Format("-", Console.BufferWidth)}");
             }
-            else { magicFile = args[0]; }
+            else { magicFile = args[2]; }
             var detector = new Detector(magicFile);
             string result = detector.Detect(targetFile);
             RenderNativePannel($"Detected file MINME type:\t\t{result}");
