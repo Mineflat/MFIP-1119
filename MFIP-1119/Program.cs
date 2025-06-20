@@ -263,7 +263,7 @@ namespace MFIP_1119
             else { magicFile = args[2]; }
             var detector = new Detector(magicFile);
             string result = detector.Detect(targetFile);
-            RenderNativePannel($"Detected file MINME type:\t\t{result}");
+            RenderNativePannel($"Detected file MINME type:{string.Format(" ", Console.BufferWidth/2)}{result}");
         }
         #endregion
 
