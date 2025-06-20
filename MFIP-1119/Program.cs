@@ -10,7 +10,10 @@ using MimeDetective;
 using MimeDetective.Definitions;
 using MimeDetective.Engine;
 using MimeDetective.MemoryMapping;
-
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace MFIP_1119
 {
@@ -24,8 +27,8 @@ namespace MFIP_1119
             Console.WriteLine("\t [2] - TwentyDevs.MimeTypeDetective");
             Console.WriteLine("\t [3] - MimeSharp");
             Console.WriteLine("\t [4] - TikaOnDotNet");
-            Console.WriteLine("\t [5] - DotNet-native methods (by urlmon.dll) - WILL NOT WORK FOR NOW" +
-                "\t[6] - HeyRed.Mime");
+            Console.WriteLine("\t [5] - DotNet-native methods");
+            Console.WriteLine("\t[6] - HeyRed.Mime");
             Console.WriteLine("Example usage:\n\t./{AppDomain.CurrentDomain.FriendlyName} 1 ./file.txt");
         }
 
@@ -74,13 +77,12 @@ namespace MFIP_1119
                         // Ну тут блять как обычно
                         // System.AccessViolationException: Attempted to read or write protected memory. 
                         // This is often an indication that other memory is corrupt.
-                        OnPanic("Этот метод пока не работает");
-                        RenderNativePannel($"File mime type: {getMimeFromFile(args[1])}");
+                        getMimeFromFile(args);
                         break;
                     // HeyRed.Mime
                     case 6:
                         string info = "MimeType: 1\nExtention: 2";
-                        //MimeGuesser.MagicFilePath = args[1];
+                        // MimeGuesser.MagicFilePath = args[1];
                         info = info.Replace("1", MimeGuesser.GuessMimeType(args[1])); //=> image/jpeg
                         // Get extension of file(overloaded method takes byte array or stream as arg.)
                         info = info.Replace("2", MimeGuesser.GuessExtension(args[1])); //=> jpeg
@@ -235,48 +237,35 @@ namespace MFIP_1119
             //}
         }
 
-        // DotNet-native methods (by urlmon.dll)
-        [DllImport(@"urlmon.dll", CharSet = CharSet.Auto)]
-        private extern static System.UInt32 FindMimeFromData(
-            System.UInt32 pBC,
-            [MarshalAs(UnmanagedType.LPStr)] System.String pwzUrl,
-            [MarshalAs(UnmanagedType.LPArray)] byte[] pBuffer,
-            System.UInt32 cbSize,
-            [MarshalAs(UnmanagedType.LPStr)] System.String pwzMimeProposed,
-            System.UInt32 dwMimeFlags,
-            out System.UInt32 ppwzMimeOut,
-            System.UInt32 dwReserverd
-        );
+        #region DotNet-native methods 
 
-        public static string getMimeFromFile(string fullPath)
+        enum PatternType { String, Hex }
+
+        public static void getMimeFromFile(string[] args)
         {
-            if (!File.Exists(fullPath))
-                throw new FileNotFoundException(fullPath + " not found");
-
-            byte[] buffer = new byte[256];
-            using (FileStream fs = new FileStream(fullPath, FileMode.Open))
+            string magicFile = string.Empty;
+            string targetFile = string.Empty;
+            if (!File.Exists(args[0])) { OnPanic($"Файл не существует: {args[0]}"); }
+            else { targetFile = args[1]; }
+            if (!File.Exists(args[1]))
             {
-                if (fs.Length >= 256)
-                    fs.Read(buffer, 0, 256);
-                else
-                    fs.Read(buffer, 0, (int)fs.Length);
+                OnPanic("Для использования этого метода требуетися наличие файла ./file.magic следующего формата (пример):\n" +
+                    "# offset  type    pattern             description\n" +
+                    "0          hex     89504E470D0A1A0A     PNG image data\n" +
+                    "0          hex     FFD8FF               JPEG image data\n" +
+                    "0          string  GIF87a              GIF image data (GIF87a)\n" +
+                    "0          string  GIF89a              GIF image data (GIF89a)\n" +
+                    "0          string  %PDF-               PDF document\n" +
+                    "0          hex     504B0304             ZIP archive data\n" +
+                    $"{String.Format("-", Console.BufferWidth)}");
             }
-            try
-            {
-                System.UInt32 mimetype;
-#pragma warning disable CS8600 // Преобразование литерала, допускающего значение NULL или возможного значения NULL в тип, не допускающий значение NULL.
-                FindMimeFromData(0, null, buffer, 256, null, 0, out mimetype, 0);
-                System.IntPtr mimeTypePtr = new IntPtr(mimetype);
-                string mime = Marshal.PtrToStringUni(mimeTypePtr);
-#pragma warning restore CS8600 // Преобразование литерала, допускающего значение NULL или возможного значения NULL в тип, не допускающий значение NULL.
-                Marshal.FreeCoTaskMem(mimeTypePtr);
-                return mime;
-            }
-            catch (Exception e)
-            {
-                return "unknown/unknown";
-            }
+            else { magicFile = args[0]; }
+            var detector = new Detector(magicFile);
+            string result = detector.Detect(targetFile);
+            RenderNativePannel($"Detected file MINME type:\t\t{result}");
         }
         #endregion
+
+#endregion
     }
 }
