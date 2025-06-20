@@ -243,6 +243,7 @@ namespace MFIP_1119
 
         public static void getMimeFromFile(string[] args)
         {
+            if (args.Length != 3) OnPanic($"To use this app MODE run:\n\t./{AppDomain.CurrentDomain.FriendlyName} [libID] [path_to_file] [path_to_magicfile]");
             string magicFile = string.Empty;
             string targetFile = string.Empty;
             if (!File.Exists(args[1])) { OnPanic($"Файл не существует: {args[1]}"); }
