@@ -40,7 +40,7 @@ namespace MFIP_1119
         }
         static void Main(string[] args)
         {
-            if (args.Length != 2 || args.Length != 3)
+            if (args.Length < 2 || args.Length > 3)
             {
                 OnPanic($"Передано неверное число аргументов: {args.Length}");
             }
