@@ -21,14 +21,15 @@ namespace MFIP_1119
     {
         private static void ShowHelpMessage()
         {
-            Console.WriteLine($"To use this app run:\n\t./{AppDomain.CurrentDomain.FriendlyName} [libID] [path_to_file] [path_to_magicfile] (last option only in case 5)");
+            Console.WriteLine($"To use this app run:\n\t./{AppDomain.CurrentDomain.FriendlyName} [libID] [path_to_file] [path_to_magicfile] (last option only in case 5 and 7)");
             Console.WriteLine("List fo LibID:");
             Console.WriteLine("\t [1] - Mime-Detective");
             Console.WriteLine("\t [2] - TwentyDevs.MimeTypeDetective");
             Console.WriteLine("\t [3] - MimeSharp");
             Console.WriteLine("\t [4] - TikaOnDotNet");
-            Console.WriteLine("\t [5] - DotNet-native methods");
+            Console.WriteLine("\t [5] - DotNet-native methods (NEW)");
             Console.WriteLine("\t[6] - HeyRed.Mime");
+            Console.WriteLine("\t[7] - LibMagic (NEW)");
             Console.WriteLine("Example usage:\n\t./{AppDomain.CurrentDomain.FriendlyName} 1 ./file.txt");
         }
 
@@ -57,7 +58,7 @@ namespace MFIP_1119
                 {
                     // Mime-Detective
                     case 1:
-                        ContentInspectorEnumeration(args[1]);
+                        ContentInspectorEnumeration(args);
                         break;
                     // TwentyDevs.MimeTypeDetective
                     case 2:
@@ -89,6 +90,11 @@ namespace MFIP_1119
                         // Get mime type and extension of file(overloaded method takes byte array or stream as arg.)
                         RenderNativePannel(info);
                         // src: https://github.com/hey-red/Mime
+                        break;
+                    case 7:
+                        if (args.Length != 3) OnPanic($"To use this app MODE run:\n\t./{AppDomain.CurrentDomain.FriendlyName} [libID] [path_to_file] [path_to_magicfile]");
+                        
+                        string filePath = args[2];
                         break;
                     // DEFAULT
                     default:
@@ -151,7 +157,7 @@ namespace MFIP_1119
                     .RoundedBorder()
                     .BorderColor(Color.Yellow));
         }
-        // Mime-Detective
+        #region Mime-Detective
         /// <summary>
         /// Generates ContentInspectorBuilder thet used on a lib (2-d method)
         /// </summary>
@@ -200,43 +206,33 @@ namespace MFIP_1119
         /// Используется для перебора ContentInspectorBuilder и вывода результатов в терминал 
         /// </summary>
         /// <param name="fullPath"></param>
-        private static void ContentInspectorEnumeration(string fullPath)
+        private static void ContentInspectorEnumeration(string[] args)
         {
-            if (File.ReadAllBytes(fullPath).Length == 0) OnPanic("The provided file is empty, so can't be inspected by this method");
-            var inspector = new ContentInspectorBuilder { Definitions = DefaultDefinitions.All() }.Build();
-            var result = inspector.InspectMemoryMapped(fullPath);
-            foreach (var match in result.OrderByDescending(static m => m.Points))
-            {
-                if (match.Type != DefinitionMatchType.Complete)
-                {
-                    continue;
-                }
+            // Проверка, что переданный файл существует и не пустой 
+            if (!File.Exists(args[1])) OnPanic($"Файл не существует: {args[1]}");
+            if (File.ReadAllBytes(args[1]).Length == 0) OnPanic("The provided file is empty, so can't be inspected by this method");
+            // new 
 
-                var fileType = match.Definition.File;
-                if (string.IsNullOrEmpty(fileType.MimeType))
-                {
-                    continue;
-                }
-
-                Console.WriteLine($"  {fileType.MimeType} ({string.Join(", ", fileType.Extensions)})");
-            }
-
-            //for (ushort i = 1; i <= 3; i++)
+            // old 
+            //var inspector = new ContentInspectorBuilder { Definitions = DefaultDefinitions.All() }.Build();
+            //var result = inspector.InspectMemoryMapped(args[1]);
+            //foreach (var match in result.OrderByDescending(static m => m.Points))
             //{
-            //var inspector = GetContentInspectorBuilder(i);
-            //var result = inspector.Inspect(File.ReadAllBytes(fullPath));
+            //    if (match.Type != DefinitionMatchType.Complete)
+            //    {
+            //        continue;
+            //    }
 
-            //var jsonFormatted = new JsonText(Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented));
-            // Using Spectre.Console.Json lib to render
-            //AnsiConsole.Write(
-            //    new Panel(jsonFormatted)
-            //        .Header($"File {fullPath} (JSON-formatted, inspector type {i})")
-            //        .Collapse()
-            //        .RoundedBorder()
-            //        .BorderColor(Color.Yellow));            
+            //    var fileType = match.Definition.File;
+            //    if (string.IsNullOrEmpty(fileType.MimeType))
+            //    {
+            //        continue;
+            //    }
+
+            //    Console.WriteLine($"  {fileType.MimeType} ({string.Join(", ", fileType.Extensions)})");
             //}
         }
-
+        #endregion
         #region DotNet-native methods 
 
         enum PatternType { String, Hex }
